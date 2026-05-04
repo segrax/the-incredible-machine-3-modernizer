@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to create, for example v0.1.0
+        required: true
+        type: string
+      draft:
+        description: Create the release as a draft
+        required: true
+        default: false
+        type: boolean
+      prerelease:
+        description: Mark the release as a prerelease
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: windows-2022
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure
+        shell: pwsh
+        run: cmake -S . -B build/cmake -G Ninja
+
+      - name: Build native patcher
+        shell: pwsh
+        run: cmake --build build/cmake --target native-patcher
+
+      - name: Smoke test
+        shell: pwsh
+        run: .\build\cmake\timwin-patch.exe --help
+
+      - name: Package release asset
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path build/release | Out-Null
+          Copy-Item -Force build/cmake/timwin-patch.exe build/release/timwin-patch-windows-x86.exe
+          $hash = Get-FileHash build/release/timwin-patch-windows-x86.exe -Algorithm SHA256
+          "$($hash.Hash)  timwin-patch-windows-x86.exe" | Set-Content -Encoding ascii build/release/timwin-patch-windows-x86.exe.sha256
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: timwin-patch-windows-x86
+          path: |
+            build/release/timwin-patch-windows-x86.exe
+            build/release/timwin-patch-windows-x86.exe.sha256
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_DRAFT: ${{ inputs.draft }}
+          RELEASE_PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          $ghArgs = @(
+            "release", "create", $env:RELEASE_TAG,
+            "build/release/timwin-patch-windows-x86.exe",
+            "build/release/timwin-patch-windows-x86.exe.sha256",
+            "--target", $env:GITHUB_SHA,
+            "--title", $env:RELEASE_TAG,
+            "--generate-notes",
+            "--fail-on-no-commits"
+          )
+          if ($env:RELEASE_DRAFT -eq "true") {
+            $ghArgs += "--draft"
+          }
+          if ($env:RELEASE_PRERELEASE -eq "true") {
+            $ghArgs += "--prerelease"
+          }
+          gh @ghArgs
