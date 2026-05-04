@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+build/
+local/
+
+# Generated patch outputs
+patched/
+hooks/build/
+archive/
+
+# Local game/install state and timestamped backups
+TIM3/
+*.bak_pre_*
+*.EXE
+*.DLL
+
+# IDA database sidecars
+*.id0
+*.id1
+*.id2
+*.nam
+*.til

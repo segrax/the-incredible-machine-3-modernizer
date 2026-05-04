@@ -1,0 +1,41 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "ninja",
+      "displayName": "Ninja",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cmake"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "hook-code",
+      "configurePreset": "ninja",
+      "targets": [
+        "hook-code"
+      ]
+    },
+    {
+      "name": "verify",
+      "configurePreset": "ninja",
+      "targets": [
+        "verify"
+      ]
+    },
+    {
+      "name": "native-patcher",
+      "configurePreset": "ninja",
+      "targets": [
+        "native-patcher"
+      ]
+    },
+    {
+      "name": "patch",
+      "configurePreset": "ninja",
+      "targets": [
+        "patch"
+      ]
+    }
+  ]
+}
