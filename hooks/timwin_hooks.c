@@ -1,6 +1,7 @@
 typedef int BOOL;
 typedef int HWND;
 typedef int HDC;
+typedef unsigned int DWORD;
 
 typedef struct RECT {
     int left;
@@ -28,6 +29,8 @@ typedef struct Surface {
 } Surface;
 
 typedef BOOL (__stdcall *GetClientRectFn)(HWND hwnd, RECT *rect);
+typedef DWORD (__stdcall *GetFileAttributesFn)(const char *path);
+typedef DWORD (__stdcall *GetModuleFileNameFn)(unsigned int module, char *path, DWORD size);
 typedef BOOL (__stdcall *GetWindowRectFn)(HWND hwnd, RECT *rect);
 typedef int (__stdcall *GetSystemMetricsFn)(int index);
 typedef BOOL (__stdcall *MoveWindowFn)(HWND hwnd, int x, int y, int w, int h, BOOL repaint);
@@ -47,6 +50,9 @@ typedef BOOL (__stdcall *StretchBltFn)(
 
 #define MEM32(addr) (*(volatile int *)(addr))
 
+#define GET_FILE_ATTRIBUTES (*(GetFileAttributesFn *)0x004C00EC)
+#define GET_MODULE_FILE_NAME (*(GetModuleFileNameFn *)0x004C0114)
+
 #define GET_WINDOW_RECT ((GetWindowRectFn)0x00467191)
 #define GET_SYSTEM_METRICS ((GetSystemMetricsFn)0x004671A9)
 #define GET_CLIENT_RECT ((GetClientRectFn)0x004671E5)
@@ -62,6 +68,10 @@ typedef BOOL (__stdcall *StretchBltFn)(
 #define GOAL_HWND MEM32(0x00480FC0)
 #define TOP_MENU_HWND MEM32(0x00480FC4)
 #define MAIN_MENU_HWND MEM32(0x0047F93C)
+
+#define VOICE_ENABLED MEM32(0x00472B74)
+#define VOICE_CD_PATH ((char *)0x00481A34)
+#define VOICE_CD_PATH_CHANGED MEM32(0x00477AB8)
 
 #define PLAYFIELD_SURFACE ((Surface *)MEM32(0x00480FC8))
 #define GOAL_SURFACE ((Surface *)MEM32(0x00480FD8))
@@ -99,6 +109,132 @@ typedef BOOL (__stdcall *StretchBltFn)(
 #define WMSZ_BOTTOM 6
 #define WMSZ_BOTTOMLEFT 7
 #define WMSZ_BOTTOMRIGHT 8
+
+#define INVALID_FILE_ATTRIBUTES 0xFFFFFFFFu
+#define VOICE_CD_PATH_CAP 0x118u
+#define LOCAL_PATH_CAP 320u
+
+static void write_profesor_voc(char *out)
+{
+    out[0] = 'P';
+    out[1] = 'R';
+    out[2] = 'O';
+    out[3] = 'F';
+    out[4] = 'E';
+    out[5] = 'S';
+    out[6] = 'O';
+    out[7] = 'R';
+    out[8] = '.';
+    out[9] = 'V';
+    out[10] = 'O';
+    out[11] = 'C';
+    out[12] = 0;
+}
+
+static unsigned int cstr_len_capped(const char *text, unsigned int cap)
+{
+    unsigned int len = 0;
+    while (len < cap && text[len]) {
+        ++len;
+    }
+    return len;
+}
+
+static void copy_capped(char *dest, unsigned int cap, const char *src)
+{
+    unsigned int i = 0;
+    if (!cap) {
+        return;
+    }
+    while (i + 1 < cap && src[i]) {
+        dest[i] = src[i];
+        ++i;
+    }
+    dest[i] = 0;
+}
+
+static int append_path_name(char *out, unsigned int cap, const char *dir)
+{
+    char name[13];
+    unsigned int pos;
+    unsigned int i = 0;
+
+    write_profesor_voc(name);
+    copy_capped(out, cap, dir);
+    pos = cstr_len_capped(out, cap);
+    if (!pos || pos >= cap - 1) {
+        return 0;
+    }
+    if (out[pos - 1] != '\\' && out[pos - 1] != '/') {
+        out[pos++] = '\\';
+        if (pos >= cap - 1) {
+            out[pos - 1] = 0;
+            return 0;
+        }
+    }
+    while (name[i] && pos + 1 < cap) {
+        out[pos++] = name[i++];
+    }
+    out[pos] = 0;
+    return name[i] == 0;
+}
+
+static int voice_bank_exists_in(const char *dir)
+{
+    char path[LOCAL_PATH_CAP];
+    if (!dir || !dir[0] || !append_path_name(path, LOCAL_PATH_CAP, dir)) {
+        return 0;
+    }
+    return GET_FILE_ATTRIBUTES(path) != INVALID_FILE_ATTRIBUTES;
+}
+
+static int module_directory(char *out, unsigned int cap)
+{
+    DWORD len;
+    int last_slash = -1;
+    unsigned int i;
+
+    if (!out || !cap) {
+        return 0;
+    }
+
+    len = GET_MODULE_FILE_NAME(0, out, cap);
+    if (!len || len >= cap) {
+        out[0] = 0;
+        return 0;
+    }
+
+    for (i = 0; out[i]; ++i) {
+        if (out[i] == '\\' || out[i] == '/') {
+            last_slash = (int)i;
+        }
+    }
+    if (last_slash < 0) {
+        out[0] = 0;
+        return 0;
+    }
+    out[last_slash] = 0;
+    return out[0] != 0;
+}
+
+void __cdecl timwin_fix_voice_cd_path(void)
+{
+    char dir[LOCAL_PATH_CAP];
+
+    if (voice_bank_exists_in(VOICE_CD_PATH)) {
+        VOICE_ENABLED = 1;
+        VOICE_CD_PATH_CHANGED = 1;
+        return;
+    }
+
+    if (!module_directory(dir, LOCAL_PATH_CAP) || !voice_bank_exists_in(dir)) {
+        return;
+    }
+
+    copy_capped(VOICE_CD_PATH, VOICE_CD_PATH_CAP, dir);
+    VOICE_ENABLED = 1;
+    VOICE_CD_PATH_CHANGED = 1;
+}
 
 static int max_int(int a, int b)
 {

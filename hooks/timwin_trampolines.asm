@@ -7,12 +7,14 @@ EXTERN _timwin_apply_sizing_aspect:PROC
 EXTERN _timwin_force_half_screen:PROC
 EXTERN _timwin_force_half_if_near_screen:PROC
 EXTERN _timwin_center_child_rect:PROC
+EXTERN _timwin_fix_voice_cd_path:PROC
 EXTERN _timwin_partbin_content_stretch:PROC
 EXTERN _timwin_scale_mouse_move:PROC
 EXTERN _timwin_scale_mouse_down:PROC
 
 PUBLIC _timwin_child_create_layout_wrapper
 PUBLIC _timwin_fullscreen_restore_size_hook
+PUBLIC _timwin_init_paths_hook
 PUBLIC _timwin_parent_message_dispatch_hook
 PUBLIC _timwin_parent_syscommand_restore_hook
 PUBLIC _timwin_parent_resize_layout_hook
@@ -120,6 +122,14 @@ _timwin_fullscreen_restore_size_hook PROC
     call _timwin_force_half_if_near_screen
     JMP_ABS 004197B4h
 _timwin_fullscreen_restore_size_hook ENDP
+
+_timwin_init_paths_hook PROC
+    CALL_ABS 0043B811h
+    pushad
+    call _timwin_fix_voice_cd_path
+    popad
+    ret
+_timwin_init_paths_hook ENDP
 
 _timwin_parent_message_dispatch_hook PROC
     cmp esi, 00000214h

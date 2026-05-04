@@ -65,7 +65,10 @@ The Windows patcher is built by the repository workflow. Download the
   begins or invalid shape frame data is encountered.
 - Suppresses the obsolete 16-bit `TIMHELP.EXE` launch path, avoiding a modern
   Windows compatibility error when quitting the game.
-
+- Fixes professor/help/goal/hint voice lookup when `sierra.ini` is missing
+  or has a stale `CDPath`; the game now falls back to the directory containing
+  `TIMWIN.EXE` when the `.VOC` banks are present there.
+  
 The MIDI issue is treated as a latent SOS driver compatibility bug, not as
 "Windows 11 cannot play old MIDI." The original driver assumes the song table
 contains valid entries after initialization. On the modern WinMM path, that
