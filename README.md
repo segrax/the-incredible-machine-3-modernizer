@@ -31,8 +31,7 @@ Check what would happen without writing files:
 timwin-patch.exe --game-dir D:\Games\TIM3\TIMWIN --check
 ```
 
-The patcher creates timestamped backups next to changed files before replacing
-them.
+The patcher creates timestamped backups next to changed files before replacing them.
 
 ## Downloads
 
@@ -138,9 +137,6 @@ For local development, clean originals can be kept under:
 - `local\original\TIMWIN.EXE`
 - `local\original\SOS9502.DLL`
 
-`local\` is ignored by git and is intended for proprietary binaries, IDA
-databases, backup files, screenshots, and old investigation artifacts.
-
 ## Architecture
 
 - `src\timwin_patch.c`: native release patcher. It validates original bytes,
@@ -156,19 +152,3 @@ databases, backup files, screenshots, and old investigation artifacts.
   generated blob embedded by the patcher.
 - `CMakeLists.txt`: builds the hook objects, generated hook blob, and native
   patcher.
-
-The hook code is embedded into `timwin-patch.exe` as bytes. It is not linked as
-normal patcher code, because the TIMWIN hooks must run later inside
-`TIMWIN.EXE` from the game's `.patch` section, and the SOS9502 hooks must run
-from fixed DLL cave addresses.
-
-Generated build products are ignored:
-
-- `build\`
-- `patched\`
-- `hooks\build\`
-
-Local game/debug artifacts are also ignored:
-
-- `TIM3\`
-- `local\`
