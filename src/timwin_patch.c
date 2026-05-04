@@ -528,6 +528,7 @@ static void patch_exe(Buffer *buf)
         {0x00415BFEu, "E8 A2 C3 FF FF"},
         {0x00416EC2u, "E8 DE B0 FF FF"},
         {0x0041476Fu, "E8 31 D8 FF FF"},
+        {0x00412399u, "8B C6 3D 11 01 00 00"},
         {0x00412A6Cu, "0F 84 F8 02 00 00"},
         {0x00412C46u, "FF 75 14 FF 75 10 50 57 E8 E5 EB 03 00 83 C4 10 33 DB"},
         {0x004126A7u, "FF 75 14 57 56 53 E8 F2 08 00 00 83 C4 10 85 C0"},
@@ -575,6 +576,7 @@ static void patch_exe(Buffer *buf)
         {0x00422BC1u, HOOK_VA(timwin_parent_client_height_metric)},
     };
     static const JumpPatch jump_patches[] = {
+        {0x00412399u, HOOK_VA(timwin_parent_message_dispatch_hook), 7},
         {0x00419180u, HOOK_VA(timwin_fullscreen_restore_size_hook), 5},
         {0x00412856u, HOOK_VA(timwin_parent_syscommand_restore_hook), 6},
         {0x004126A7u, HOOK_VA(timwin_parent_resize_layout_hook), 5},

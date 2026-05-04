@@ -3,6 +3,7 @@
 option casemap:none
 
 EXTERN _timwin_apply_dynamic_layout:PROC
+EXTERN _timwin_apply_sizing_aspect:PROC
 EXTERN _timwin_force_half_screen:PROC
 EXTERN _timwin_force_half_if_near_screen:PROC
 EXTERN _timwin_center_child_rect:PROC
@@ -12,6 +13,7 @@ EXTERN _timwin_scale_mouse_down:PROC
 
 PUBLIC _timwin_child_create_layout_wrapper
 PUBLIC _timwin_fullscreen_restore_size_hook
+PUBLIC _timwin_parent_message_dispatch_hook
 PUBLIC _timwin_parent_syscommand_restore_hook
 PUBLIC _timwin_parent_resize_layout_hook
 PUBLIC _timwin_toolbar_surface_native_layout_hook
@@ -118,6 +120,24 @@ _timwin_fullscreen_restore_size_hook PROC
     call _timwin_force_half_if_near_screen
     JMP_ABS 004197B4h
 _timwin_fullscreen_restore_size_hook ENDP
+
+_timwin_parent_message_dispatch_hook PROC
+    cmp esi, 00000214h
+    jne original_message_dispatch
+    cmp ebx, dword ptr ds:[00490EF0h]
+    jne original_message_dispatch
+    push dword ptr [ebp+14h]
+    push edi
+    call _timwin_apply_sizing_aspect
+    add esp, 8
+    mov eax, 1
+    JMP_ABS 0041298Eh
+
+original_message_dispatch:
+    mov eax, esi
+    cmp eax, 00000111h
+    JMP_ABS 004123A0h
+_timwin_parent_message_dispatch_hook ENDP
 
 _timwin_parent_syscommand_restore_hook PROC
     mov eax, edi

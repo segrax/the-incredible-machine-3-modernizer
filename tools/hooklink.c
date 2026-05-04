@@ -639,6 +639,7 @@ static void write_header(const Options *options)
 {
     static const char *timwin_required[] = {
         "timwin_apply_dynamic_layout",
+        "timwin_apply_sizing_aspect",
         "timwin_center_child_rect",
         "timwin_force_half_screen",
         "timwin_force_half_if_near_screen",
@@ -649,6 +650,7 @@ static void write_header(const Options *options)
         "timwin_scale_mouse_down",
         "timwin_child_create_layout_wrapper",
         "timwin_fullscreen_restore_size_hook",
+        "timwin_parent_message_dispatch_hook",
         "timwin_parent_syscommand_restore_hook",
         "timwin_parent_resize_layout_hook",
         "timwin_toolbar_surface_native_layout_hook",

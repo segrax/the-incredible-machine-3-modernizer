@@ -1,11 +1,12 @@
 # TimWin Modernization Patch
 
+<img width="2521" height="1226" alt="image" src="https://github.com/user-attachments/assets/18dd49ff-0fdc-4ab2-9bcd-aea7aedbe99e" />
+
 Open-source patch project for the Windows release of *The Incredible Machine 3*
 (`TIMWIN.EXE`). The goal is to make the original game usable on modern Windows
 without distributing Sierra/Dynamix game files.
 
-The release artifact is a native `timwin-patch.exe`. End users do not need the
-source tree, build tools, IDA, or x64dbg to apply the patch.
+The release artifact is a native `timwin-patch.exe`.
 
 This is not an official Sierra/Dynamix release.
 
@@ -85,6 +86,7 @@ invalid entries instead of dereferencing them.
 - Centers the main menu and top-level menu panels inside the current game
   window after switching between full-screen and windowed layouts, and keeps
   them centered while the window is resized.
+- Keeps manual main-window resizing locked to the startup screen aspect ratio.
 
 ## Supported Input Files
 
@@ -100,7 +102,7 @@ Expected patched outputs:
 
 | File | Size | SHA-256 |
 | --- | ---: | --- |
-| `TIMWIN.EXE` | 462848 | `75F33A2137AA566EB8335F8E2DB4907F3CE04398080FFF929C1D5D51AC736F43` |
+| `TIMWIN.EXE` | 462848 | `2B8B8CFD29942ED6DCB3123313F5CFA1336A92A7F0A7516B207AB41E2C53A4EC` |
 | `SOS9502.DLL` | 82944 | `0CA49BD5873903049275DA97EDD545A240246EFF91ABF7F6F0AC6A815A0C25E0` |
 
 ## Building From Source

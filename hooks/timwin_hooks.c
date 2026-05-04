@@ -91,9 +91,130 @@ typedef BOOL (__stdcall *StretchBltFn)(
 #define MOUSE_DOWN_X MEM32(0x00490064)
 #define MOUSE_DOWN_Y MEM32(0x00490068)
 
+#define WMSZ_LEFT 1
+#define WMSZ_RIGHT 2
+#define WMSZ_TOP 3
+#define WMSZ_TOPLEFT 4
+#define WMSZ_TOPRIGHT 5
+#define WMSZ_BOTTOM 6
+#define WMSZ_BOTTOMLEFT 7
+#define WMSZ_BOTTOMRIGHT 8
+
 static int max_int(int a, int b)
 {
     return a > b ? a : b;
+}
+
+static int min_client_size(int value, int min_value)
+{
+    return value < min_value ? min_value : value;
+}
+
+void __cdecl timwin_apply_sizing_aspect(int edge, RECT *rect)
+{
+    HWND parent = MAIN_HWND;
+    RECT client_rect;
+    RECT window_rect;
+    int aspect_w;
+    int aspect_h;
+    int extra_w = 0;
+    int extra_h = 0;
+    int outer_w;
+    int outer_h;
+    int client_w;
+    int client_h;
+    int min_w;
+    int target_w;
+    int target_h;
+    int center_x;
+    int center_y;
+
+    if (!rect) {
+        return;
+    }
+
+    if (parent && GET_CLIENT_RECT(parent, &client_rect) && GET_WINDOW_RECT(parent, &window_rect)) {
+        extra_w = (window_rect.right - window_rect.left) - client_rect.right;
+        extra_h = (window_rect.bottom - window_rect.top) - client_rect.bottom;
+        if (extra_w < 0) {
+            extra_w = 0;
+        }
+        if (extra_h < 0) {
+            extra_h = 0;
+        }
+    }
+
+    aspect_w = GET_SYSTEM_METRICS(0);
+    aspect_h = GET_SYSTEM_METRICS(1);
+    if (aspect_w <= 0 || aspect_h <= 0) {
+        aspect_w = 16;
+        aspect_h = 10;
+    }
+
+    outer_w = rect->right - rect->left;
+    outer_h = rect->bottom - rect->top;
+    if (outer_w <= extra_w || outer_h <= extra_h) {
+        return;
+    }
+
+    min_w = (480 * aspect_w + aspect_h - 1) / aspect_h;
+    client_w = min_client_size(outer_w - extra_w, min_w);
+    client_h = min_client_size(outer_h - extra_h, 480);
+
+    if (edge == WMSZ_LEFT || edge == WMSZ_RIGHT) {
+        client_h = (client_w * aspect_h + aspect_w / 2) / aspect_w;
+    } else if (edge == WMSZ_TOP || edge == WMSZ_BOTTOM) {
+        client_w = (client_h * aspect_w + aspect_h / 2) / aspect_h;
+    } else if (client_w * aspect_h > client_h * aspect_w) {
+        client_w = (client_h * aspect_w + aspect_h / 2) / aspect_h;
+    } else {
+        client_h = (client_w * aspect_h + aspect_w / 2) / aspect_w;
+    }
+
+    target_w = client_w + extra_w;
+    target_h = client_h + extra_h;
+    center_x = (rect->left + rect->right) / 2;
+    center_y = (rect->top + rect->bottom) / 2;
+
+    switch (edge) {
+    case WMSZ_LEFT:
+        rect->left = rect->right - target_w;
+        rect->top = center_y - target_h / 2;
+        rect->bottom = rect->top + target_h;
+        break;
+    case WMSZ_RIGHT:
+        rect->right = rect->left + target_w;
+        rect->top = center_y - target_h / 2;
+        rect->bottom = rect->top + target_h;
+        break;
+    case WMSZ_TOP:
+        rect->top = rect->bottom - target_h;
+        rect->left = center_x - target_w / 2;
+        rect->right = rect->left + target_w;
+        break;
+    case WMSZ_TOPLEFT:
+        rect->left = rect->right - target_w;
+        rect->top = rect->bottom - target_h;
+        break;
+    case WMSZ_TOPRIGHT:
+        rect->right = rect->left + target_w;
+        rect->top = rect->bottom - target_h;
+        break;
+    case WMSZ_BOTTOM:
+        rect->bottom = rect->top + target_h;
+        rect->left = center_x - target_w / 2;
+        rect->right = rect->left + target_w;
+        break;
+    case WMSZ_BOTTOMLEFT:
+        rect->left = rect->right - target_w;
+        rect->bottom = rect->top + target_h;
+        break;
+    case WMSZ_BOTTOMRIGHT:
+    default:
+        rect->right = rect->left + target_w;
+        rect->bottom = rect->top + target_h;
+        break;
+    }
 }
 
 static void move_child(HWND hwnd, int x, int y, int w, int h)
