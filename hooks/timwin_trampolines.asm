@@ -5,6 +5,7 @@ option casemap:none
 EXTERN _timwin_apply_dynamic_layout:PROC
 EXTERN _timwin_force_half_screen:PROC
 EXTERN _timwin_force_half_if_near_screen:PROC
+EXTERN _timwin_center_child_rect:PROC
 EXTERN _timwin_partbin_content_stretch:PROC
 EXTERN _timwin_scale_mouse_move:PROC
 EXTERN _timwin_scale_mouse_down:PROC
@@ -64,6 +65,8 @@ _timwin_child_create_layout_wrapper PROC
     je play_rect
     cmp eax, 00417ADAh
     je part_rect
+    cmp eax, 004147B6h
+    je centered_child_rect
     JMP_ABS 00411FA5h
 
 goal_rect:
@@ -97,6 +100,17 @@ part_rect:
     mov dword ptr [esp+18h], eax
     mov eax, dword ptr ds:[00471F88h]
     mov dword ptr [esp+1Ch], eax
+    JMP_ABS 00411FA5h
+
+centered_child_rect:
+    lea eax, [esp+10h]
+    lea edx, [esp+14h]
+    push dword ptr [esp+1Ch]
+    push dword ptr [esp+1Ch]
+    push edx
+    push eax
+    call _timwin_center_child_rect
+    add esp, 10h
     JMP_ABS 00411FA5h
 _timwin_child_create_layout_wrapper ENDP
 

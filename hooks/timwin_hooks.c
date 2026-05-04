@@ -60,6 +60,8 @@ typedef BOOL (__stdcall *StretchBltFn)(
 #define PLAYFIELD_HWND MEM32(0x00480FB4)
 #define PARTBIN_HWND MEM32(0x00480FBC)
 #define GOAL_HWND MEM32(0x00480FC0)
+#define TOP_MENU_HWND MEM32(0x00480FC4)
+#define MAIN_MENU_HWND MEM32(0x0047F93C)
 
 #define PLAYFIELD_SURFACE ((Surface *)MEM32(0x00480FC8))
 #define GOAL_SURFACE ((Surface *)MEM32(0x00480FD8))
@@ -99,6 +101,40 @@ static void move_child(HWND hwnd, int x, int y, int w, int h)
     if (hwnd) {
         MOVE_WINDOW(hwnd, x, y, w, h, 1);
     }
+}
+
+static void center_existing_child(HWND hwnd, const RECT *parent_rect)
+{
+    RECT child_rect;
+    int parent_w;
+    int parent_h;
+    int child_w;
+    int child_h;
+    int x;
+    int y;
+
+    if (!hwnd || !parent_rect || !GET_WINDOW_RECT(hwnd, &child_rect)) {
+        return;
+    }
+
+    parent_w = parent_rect->right;
+    parent_h = parent_rect->bottom;
+    child_w = child_rect.right - child_rect.left;
+    child_h = child_rect.bottom - child_rect.top;
+    if (parent_w <= 0 || parent_h <= 0 || child_w <= 0 || child_h <= 0) {
+        return;
+    }
+
+    x = (parent_w - child_w) / 2;
+    y = (parent_h - child_h) / 2;
+    if (x < 0) {
+        x = 0;
+    }
+    if (y < 0) {
+        y = 0;
+    }
+
+    MOVE_WINDOW(hwnd, x, y, child_w, child_h, 1);
 }
 
 static int scale_trunc(int value, int source_size, int dest_size)
@@ -221,6 +257,9 @@ void __cdecl timwin_apply_dynamic_layout(void)
 
     width = rect.right;
     height = rect.bottom;
+    center_existing_child(TOP_MENU_HWND, &rect);
+    center_existing_child(MAIN_MENU_HWND, &rect);
+
     if (width < 640 || height < 480) {
         return;
     }
@@ -314,6 +353,80 @@ void __cdecl timwin_force_half_if_near_screen(void)
     height = rect.bottom - rect.top;
     if (width >= GET_SYSTEM_METRICS(0) - 80 && height >= GET_SYSTEM_METRICS(1) - 80) {
         timwin_force_half_screen();
+    }
+}
+
+static int main_client_metric(int metric)
+{
+    HWND parent = MAIN_HWND;
+    RECT rect;
+
+    if (parent && GET_CLIENT_RECT(parent, &rect)) {
+        if (metric == 0 && rect.right > 0) {
+            return rect.right;
+        }
+        if (metric == 1 && rect.bottom > 0) {
+            return rect.bottom;
+        }
+    }
+    return GET_SYSTEM_METRICS(metric);
+}
+
+static int __cdecl timwin_parent_client_width(void)
+{
+    return main_client_metric(0);
+}
+
+static int __cdecl timwin_parent_client_height(void)
+{
+    return main_client_metric(1);
+}
+
+void __cdecl timwin_center_child_rect(int *x, int *y, int w, int h)
+{
+    HWND parent = MAIN_HWND;
+    RECT rect;
+    int width;
+    int height;
+    int centered_x;
+    int centered_y;
+
+    if (!x || !y || !parent || !GET_CLIENT_RECT(parent, &rect)) {
+        return;
+    }
+
+    width = rect.right;
+    height = rect.bottom;
+    if (width <= 0 || height <= 0 || w <= 0 || h <= 0) {
+        return;
+    }
+
+    centered_x = (width - w) / 2;
+    centered_y = (height - h) / 2;
+    if (centered_x < 0) {
+        centered_x = 0;
+    }
+    if (centered_y < 0) {
+        centered_y = 0;
+    }
+
+    *x = centered_x;
+    *y = centered_y;
+}
+
+__declspec(naked) void __cdecl timwin_parent_client_width_metric(void)
+{
+    __asm {
+        call timwin_parent_client_width
+        ret 4
+    }
+}
+
+__declspec(naked) void __cdecl timwin_parent_client_height_metric(void)
+{
+    __asm {
+        call timwin_parent_client_height
+        ret 4
     }
 }
 

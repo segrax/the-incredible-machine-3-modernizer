@@ -639,8 +639,11 @@ static void write_header(const Options *options)
 {
     static const char *timwin_required[] = {
         "timwin_apply_dynamic_layout",
+        "timwin_center_child_rect",
         "timwin_force_half_screen",
         "timwin_force_half_if_near_screen",
+        "timwin_parent_client_height_metric",
+        "timwin_parent_client_width_metric",
         "timwin_partbin_content_stretch",
         "timwin_scale_mouse_move",
         "timwin_scale_mouse_down",

@@ -82,6 +82,9 @@ invalid entries instead of dereferencing them.
 - Allows Enter to dismiss modal dialogs such as round-start prompts.
 - Makes the toolbar full-screen/window toggle restore to a centered half-screen
   window instead of remaining effectively full-screen.
+- Centers the main menu and top-level menu panels inside the current game
+  window after switching between full-screen and windowed layouts, and keeps
+  them centered while the window is resized.
 
 ## Supported Input Files
 
@@ -97,7 +100,7 @@ Expected patched outputs:
 
 | File | Size | SHA-256 |
 | --- | ---: | --- |
-| `TIMWIN.EXE` | 462848 | `EC36D389B4389FFD9D9E834F0BC1A72B2C5BBF1F796C0AE9BF9421F8B85B5A08` |
+| `TIMWIN.EXE` | 462848 | `75F33A2137AA566EB8335F8E2DB4907F3CE04398080FFF929C1D5D51AC736F43` |
 | `SOS9502.DLL` | 82944 | `0CA49BD5873903049275DA97EDD545A240246EFF91ABF7F6F0AC6A815A0C25E0` |
 
 ## Building From Source

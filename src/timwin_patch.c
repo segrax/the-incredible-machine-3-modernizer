@@ -527,6 +527,7 @@ static void patch_exe(Buffer *buf)
         {0x00414DD3u, "E8 CD D1 FF FF"},
         {0x00415BFEu, "E8 A2 C3 FF FF"},
         {0x00416EC2u, "E8 DE B0 FF FF"},
+        {0x0041476Fu, "E8 31 D8 FF FF"},
         {0x00412A6Cu, "0F 84 F8 02 00 00"},
         {0x00412C46u, "FF 75 14 FF 75 10 50 57 E8 E5 EB 03 00 83 C4 10 33 DB"},
         {0x004126A7u, "FF 75 14 57 56 53 E8 F2 08 00 00 83 C4 10 85 C0"},
@@ -543,6 +544,8 @@ static void patch_exe(Buffer *buf)
         {0x00451A31u, "89 3D 5C 00 49 00 8B 45 F4 A3 60 00 49 00"},
         {0x0045198Eu, "8D 0C 38 85 C9 7C 22 8D 0C 38 3B 4B 18 7D 1A 8B 4D F4 03 CA 85 C9 7C 11 8B 4D F4 03 CA 3B 4B 1C 7D 07"},
         {0x0042ECC0u, "8B 03 8B 55 FC 89 50 34 8B 03 8B 55 F8 89 50 38"},
+        {0x00422BAEu, "E8 F6 45 04 00"},
+        {0x00422BC1u, "E8 E3 45 04 00"},
         {0x00443DD0u, "8B 52 6C 8B 48 18 8B 14 8A"},
         {0x00444F63u, "8B 52 6C 8B 12"},
         {0x004582B0u, "F6 43 38 40 74 45"},
@@ -567,6 +570,9 @@ static void patch_exe(Buffer *buf)
         {0x00414DD3u, HOOK_VA(timwin_child_create_layout_wrapper)},
         {0x00415BFEu, HOOK_VA(timwin_child_create_layout_wrapper)},
         {0x00416EC2u, HOOK_VA(timwin_child_create_layout_wrapper)},
+        {0x0041476Fu, HOOK_VA(timwin_child_create_layout_wrapper)},
+        {0x00422BAEu, HOOK_VA(timwin_parent_client_width_metric)},
+        {0x00422BC1u, HOOK_VA(timwin_parent_client_height_metric)},
     };
     static const JumpPatch jump_patches[] = {
         {0x00419180u, HOOK_VA(timwin_fullscreen_restore_size_hook), 5},
